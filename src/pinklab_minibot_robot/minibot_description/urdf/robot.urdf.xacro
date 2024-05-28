@@ -5,12 +5,15 @@
     <xacro:include filename="$(find minibot_description)/urdf/minibot_gazebo.urdf.xacro"/>
     <xacro:include filename="$(find minibot_description)/urdf/minibot_ros2_control.urdf.xacro"/>
 
+    <xacro:arg name="namespace" default="robot1/"/>
     <xacro:arg name="prefix" default=""/>
+    <!-- <xacro:arg name="prefix" default="$(arg namespace)"/> -->
     <xacro:arg name="is_sim" default="false"/>
     <xacro:arg name="robot_port_name" default="/dev/ttyArduino"/>
     <xacro:arg name="robot_baudrate" default="500000"/>
 
     <xacro:property name="prefix" value="$(arg prefix)"/>
+    <!-- <xacro:property name="prefix" value="$(arg namespace)"/> -->
 
     <!-- insert robot base -->
     <xacro:insert_robot prefix="$(arg prefix)"/>

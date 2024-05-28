@@ -13,8 +13,10 @@ def generate_launch_description():
 
     is_sim = DeclareLaunchArgument("is_sim", default_value="false")
     prefix = DeclareLaunchArgument("prefix", default_value="")
+    namespace = LaunchConfiguration('namespace', default="")
 
     rsp_node = Node(
+        namespace=namespace,
         package='robot_state_publisher',
         executable='robot_state_publisher',
         name='robot_state_publisher',
@@ -32,6 +34,7 @@ def generate_launch_description():
                     ]),
                     ' is_sim:=', LaunchConfiguration('is_sim'),
                     ' prefix:=', LaunchConfiguration('prefix'),
+                    # ' namespace:=', LaunchConfiguration('namespace'),
                 ]),
         }]
     )

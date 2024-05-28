@@ -18,7 +18,7 @@ from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
 from launch.actions import (DeclareLaunchArgument, GroupAction,
-                            IncludeLaunchDescription, SetEnvironmentVariable)
+                            IncludeLaunchDescription, SetEnvironmentVariable, OpaqueFunction)
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PythonExpression
@@ -31,13 +31,28 @@ ARGUMENTS = [
 ]
 
 
+def launch_setup(context, *args, **kwargs):
+
+    # Create the launch configuration variables
+    namespace = LaunchConfiguration('namespace')
+    namespace_str = namespace.perform(context)
+
+    # return namespace_str
+  
+
 def generate_launch_description():
+    ld = LaunchDescription(ARGUMENTS)
+
+    ld.add_action(OpaqueFunction(function=launch_setup))
+
+    # print(type(namespace_str))
+
+
     # Get the launch directory
     bringup_dir = get_package_share_directory('minibot_navigation2')
     launch_dir = os.path.join(bringup_dir, 'launch')
 
     # Create the launch configuration variables
-    
     namespace = LaunchConfiguration('namespace')
 
     map_yaml_file = LaunchConfiguration('map')
@@ -48,8 +63,12 @@ def generate_launch_description():
     use_respawn = LaunchConfiguration('use_respawn')
     log_level = LaunchConfiguration('log_level')
 
-    remappings = [  ('/tf', 'tf'),
-                    ('/tf_static', 'tf_static'),
+    # remappings = [  ('/tf', namespace_str + '/tf'),
+    #                 ('/tf_static', namespace_str + '/tf_static'),
+    # ]
+
+    remappings = [  ('/tf', '/robot1/tf'),
+                    ('/tf_static', '/robot1/tf_static'),
     ]
 
     param_substitutions = {
@@ -97,8 +116,8 @@ def generate_launch_description():
 
     # Specify the actions
     bringup_cmd_group = GroupAction([
-        PushRosNamespace(namespace=namespace),
-
+        PushRosNamespace(namespace),
+        
         Node(
             condition=IfCondition(use_composition),
             name='nav2_container',
@@ -117,8 +136,8 @@ def generate_launch_description():
                                 'params_file': params_file,
                                 'use_composition': use_composition,
                                 'use_respawn': use_respawn,
-                                # 'namespace': namespace,
-                                'container_name': 'nav2_container'}.items()),
+                                'container_name': 'nav2_container',
+                                'namespace': namespace}.items()),
 
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(launch_dir, 'navigation_launch.py')),
@@ -127,12 +146,9 @@ def generate_launch_description():
                                 'params_file': params_file,
                                 'use_composition': use_composition,
                                 'use_respawn': use_respawn,
-                                # 'namespace': namespace,
-                                'container_name': 'nav2_container'}.items()),
+                                'container_name': 'nav2_container',
+                                'namespace': namespace}.items()),
     ])
-
-    # Create the launch description and populate
-    ld = LaunchDescription(ARGUMENTS)
 
     # Set environment variables
     ld.add_action(stdout_linebuf_envvar)
@@ -147,4 +163,5 @@ def generate_launch_description():
     ld.add_action(declare_log_level_cmd)
 
     ld.add_action(bringup_cmd_group)
+
     return ld
